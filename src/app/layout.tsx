@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import StoreProvider from "@/store/StoreProvider.js";
+import StoreProvider from "@/store/StoreProvider";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -18,7 +20,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans`}>
-        <StoreProvider>{children}</StoreProvider>
+        <StoreProvider>
+          <DashboardLayout>
+            {children}
+          </DashboardLayout>
+        </StoreProvider>
       </body>
     </html>
   );
