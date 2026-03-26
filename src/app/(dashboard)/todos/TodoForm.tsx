@@ -45,7 +45,13 @@ export default function TodoForm({ initialData, onSubmit, isLoading, isEdit }: T
 
   const handleFormSubmit = async (data: TodoFormData) => {
     try {
-      await onSubmit(data);
+      const payload = { ...data };
+      if (payload.dueDate) {
+        payload.dueDate = new Date(payload.dueDate).toISOString();
+      } else {
+        delete payload.dueDate;
+      }
+      await onSubmit(payload);
     } catch (error) {
       // Error handled by parent
     }

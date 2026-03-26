@@ -24,14 +24,20 @@ export default function Sidebar() {
   const visibleTabs = useMemo(() => {
     if (!tabsData?.data || !user) return [];
 
+    const userRoles = user.roles || [];
+    const userPermissions = user.permissions || [];
+    const isSuperAdmin = userRoles.includes("superadmin");
+
     return tabsData.data
       .filter((tab: any) => {
-        // If superadmin, show all
-        if (user.roles.includes("superadmin")) return true;
+        // Superadmin bypass
+        if (isSuperAdmin) return true;
         
-        // Match permission: module:read
-        const permissionRequired = `${tab.module?.name}:read`;
-        return user.permissions.includes(permissionRequired);
+        // Permission check: module:read
+        const moduleName = tab.module?.name;
+        if (!moduleName) return false;
+        
+        return userPermissions.includes(`${moduleName}:read`);
       })
       .sort((a: any, b: any) => a.order - b.order);
   }, [tabsData, user]);
@@ -65,9 +71,8 @@ export default function Sidebar() {
 
       <nav className="flex-1 px-4 space-y-2 mt-4 overflow-x-hidden">
         {visibleTabs.map((tab: any) => {
-          // Dynamically get icon from Lucide
           const IconComponent = (LucideIcons as any)[tab.icon] || Settings;
-          const isActive = pathname === tab.path;
+          const isActive = pathname === tab.path || pathname.startsWith(`${tab.path}/`);
 
           return (
             <Link
@@ -80,7 +85,7 @@ export default function Sidebar() {
                   : "text-muted-foreground glass-hover"
               )}
             >
-              <IconComponent size={isCollapsed ? 24 : 20} className={cn(isActive ? "text-white" : "group-hover:text-primary")} />
+              <IconComponent size={24} className={cn(isActive ? "text-white" : "group-hover:text-primary")} />
               {!isCollapsed && <span className="font-medium">{tab.label}</span>}
               {isCollapsed && (
                 <div className="absolute left-16 bg-card border px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
@@ -96,14 +101,16 @@ export default function Sidebar() {
         {!isCollapsed && user && (
           <div className="px-3 py-3 mb-2 rounded-xl bg-white/5 overflow-hidden">
             <p className="text-sm font-semibold truncate">{user.name}</p>
-            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest truncate font-medium">
+              {user.roles?.[0] || 'User'}
+            </p>
           </div>
         )}
         <button
           onClick={logout}
           className="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-destructive glass-hover transition-colors"
         >
-          <LogOut size={isCollapsed ? 24 : 20} />
+          <LogOut size={24} />
           {!isCollapsed && <span className="font-medium">Logout</span>}
         </button>
       </div>

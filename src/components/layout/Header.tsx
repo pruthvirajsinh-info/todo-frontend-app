@@ -5,6 +5,11 @@ import { User, Bell, Search } from "lucide-react";
 
 export default function Header() {
   const { user } = useAuth();
+  
+  // Robust role extraction:
+  // 1. Check user.roles (array of strings from backend getMe/login)
+  // 2. Check user.userRoles (orm relation if spread)
+  const roleName = user?.roles?.[0] || user?.userRoles?.[0]?.role?.name || "No Role";
 
   return (
     <header className="h-20 glass sticky top-0 z-40 px-8 flex items-center justify-between gap-4">
@@ -28,7 +33,7 @@ export default function Header() {
         <div className="flex items-center gap-4 px-2 py-1.5 rounded-2xl glass-hover cursor-pointer border border-transparent hover:border-white/10 transition-all">
           <div className="hidden text-right lg:block">
             <p className="text-sm font-semibold">{user?.name || "Guest"}</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{user?.roles[0] || "No Role"}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{roleName}</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
             <User size={20} />

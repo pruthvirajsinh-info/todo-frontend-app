@@ -112,6 +112,7 @@ export default function AGGridTable({
       <div className="glass rounded-3xl overflow-hidden shadow-xl border border-white/10 h-[500px]">
         <div className="ag-theme-alpine-dark w-full h-full"> 
           <AgGridReact
+            theme="legacy"
             rowData={rowData}
             columnDefs={columnDefs}
             defaultColDef={defaultColDef}
