@@ -1,52 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import * as LucideIcons from "lucide-react";
 import { 
   ChevronLeft, 
   ChevronRight, 
-  LayoutDashboard, 
-  CheckSquare, 
-  Users, 
-  Settings, 
-  ShieldCheck, 
-  Layers, 
-  Terminal,
-  LogOut
+  LogOut,
+  Settings
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-
-const ICON_MAP: Record<string, any> = {
-  dashboard: LayoutDashboard,
-  todos: CheckSquare,
-  users: Users,
-  roles: ShieldCheck,
-  permissions: Settings,
-  modules: Layers,
-  actions: Terminal,
-};
+import { useGetSidebarTabsQuery } from "@/store/services/metaService";
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { user, logout } = useAuth();
   const pathname = usePathname();
+  const { data: tabsData } = useGetSidebarTabsQuery();
 
-  const allTabs = [
-    { label: "Dashboard", icon: "dashboard", path: "/dashboard", permission: "dashboard:read" },
-    { label: "Todos", icon: "todos", path: "/todos", permission: "todos:read" },
-    { label: "Users", icon: "users", path: "/users", permission: "users:read" },
-    { label: "Roles", icon: "roles", path: "/roles", permission: "roles:read" },
-    { label: "Permissions", icon: "permissions", path: "/permissions", permission: "permissions:read" },
-    { label: "Modules", icon: "modules", path: "/modules", permission: "modules:read" },
-    { label: "Actions", icon: "actions", path: "/actions", permission: "actions:read" },
-  ];
+  const visibleTabs = useMemo(() => {
+    if (!tabsData?.data || !user) return [];
 
-  const visibleTabs = allTabs.filter(tab => 
-    user?.roles.includes("superadmin") || user?.permissions.includes(tab.permission)
-  );
+    return tabsData.data
+      .filter((tab: any) => {
+        // If superadmin, show all
+        if (user.roles.includes("superadmin")) return true;
+        
+        // Match permission: module:read
+        const permissionRequired = `${tab.module?.name}:read`;
+        return user.permissions.includes(permissionRequired);
+      })
+      .sort((a: any, b: any) => a.order - b.order);
+  }, [tabsData, user]);
 
   return (
     <motion.aside
@@ -76,13 +64,14 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 px-4 space-y-2 mt-4 overflow-x-hidden">
-        {visibleTabs.map((tab) => {
-          const Icon = ICON_MAP[tab.icon] || Settings;
+        {visibleTabs.map((tab: any) => {
+          // Dynamically get icon from Lucide
+          const IconComponent = (LucideIcons as any)[tab.icon] || Settings;
           const isActive = pathname === tab.path;
 
           return (
             <Link
-              key={tab.path}
+              key={tab.id}
               href={tab.path}
               className={cn(
                 "flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 group relative",
@@ -91,7 +80,7 @@ export default function Sidebar() {
                   : "text-muted-foreground glass-hover"
               )}
             >
-              <Icon size={isCollapsed ? 24 : 20} className={cn(isActive ? "text-white" : "group-hover:text-primary")} />
+              <IconComponent size={isCollapsed ? 24 : 20} className={cn(isActive ? "text-white" : "group-hover:text-primary")} />
               {!isCollapsed && <span className="font-medium">{tab.label}</span>}
               {isCollapsed && (
                 <div className="absolute left-16 bg-card border px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">

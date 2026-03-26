@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-alpine.css";
 import StoreProvider from "@/store/StoreProvider";
+
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
 
